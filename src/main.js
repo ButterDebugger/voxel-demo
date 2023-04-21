@@ -1,31 +1,54 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import { GUI } from "dat.gui";
+import Stats from "three/examples/jsm/libs/stats.module";
 
 /**
  * GUI Controls
  */
 const gui = new GUI();
 
+const stats = new Stats();
+document.body.appendChild(stats.dom);
+
 /**
  * Base
  */
+
 // Canvas
 const canvas = document.querySelector("canvas");
 
 // Scene
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
 
 /**
  * Object
  */
-const geometry = new THREE.IcosahedronGeometry(20, 1);
-const material = new THREE.MeshNormalMaterial();
-// Material Props.
-material.wireframe = true;
-// Create Mesh & Add To Scene
-const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
+
+import { VoxelGroup, createTextureFromUrl, BlockType, Block, getBlockType } from "./voxels.js";
+
+const voxGroup = new VoxelGroup(scene);
+
+new BlockType("grass", new THREE.MeshBasicMaterial({ color: 0x00ff00 }), scene);
+
+import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise.js";
+
+const noise = new SimplexNoise();
+
+for (let x = 0; x < 25; x++) {
+  for (let z = 0; z < 25; z++) {
+    let y = Math.round(noise.noise(x / 100, z / 100) * 10);
+
+    new Block(x, y, z, getBlockType("grass")).add();
+
+    // voxGroup.addVoxel(new THREE.Vector3(x, y, z), createTextureFromUrl("./grass.png"));
+
+    // for (let i = y - 1; i < y; i++) {
+    //   voxGroup.addVoxel(new THREE.Vector3(x, i, z), createTextureFromUrl("./grass.png"));
+    // }
+  }
+}
 
 /**
  * Sizes
@@ -59,53 +82,65 @@ const camera = new THREE.PerspectiveCamera(
   0.001,
   5000
 );
-camera.position.x = 1;
-camera.position.y = 1;
-camera.position.z = 50;
+camera.position.y = 5;
 scene.add(camera);
 
-// Controls
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.autoRotate = true;
-// controls.enableZoom = false;
-controls.enablePan = false;
-controls.dampingFactor = 0.05;
-controls.maxDistance = 1000;
-controls.minDistance = 30;
-controls.touches = {
-  ONE: THREE.TOUCH.ROTATE,
-  TWO: THREE.TOUCH.DOLLY_PAN
-}
+const axesHelper = new THREE.AxesHelper(30);
+scene.add(axesHelper);
+
 /**
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
-  antialias: true
+  antialias: true,
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+// Controls
+const controls = new PointerLockControls(camera, canvas);
+
+canvas.addEventListener("click", () => {
+  controls.lock();
+});
+
 /**
  * Animate
  */
-const clock = new THREE.Clock();
 const animate = () => {
-  const elapsedTime = clock.getElapsedTime();
-
-  //mesh.rotation.y += 0.01 * Math.sin(1);
-  //mesh.rotation.y += 0.01 * Math.sin(1);
-  mesh.rotation.z += 0.01 * Math.sin(1);
+  // Call animate again on the next frame
+  requestAnimationFrame(animate);
 
   // Update controls
-  controls.update();
+  updateControls();
 
   // Render
   renderer.render(scene, camera);
+  
+  // Update stats
+  stats.update();
+}
 
-  // Call animate again on the next frame
-  window.requestAnimationFrame(animate);
+function updateControls() {
+  if (keys?.KeyW) {
+    controls.moveForward(1);
+  }
+  if (keys?.KeyA) {
+    controls.moveRight(-1);
+  }
+  if (keys?.KeyS) {
+    controls.moveForward(-1);
+  }
+  if (keys?.KeyD) {
+    controls.moveRight(1);
+  }
+  if (keys?.Space) {
+    camera.position.y += 1;
+  }
+  if (keys?.Shift) {
+    camera.position.y -= 1;
+  }
 }
 
 animate();
