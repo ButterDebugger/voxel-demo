@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import { DynamicInstancedMesh } from "./utils.js";
 
-const voxelSize = 5;
-const chunkSize = 16;
-const blockGeometry = new THREE.BoxGeometry(voxelSize, voxelSize, voxelSize);
+export const voxelScale = 5;
+export const chunkSize = 16;
+const blockGeometry = new THREE.BoxGeometry(voxelScale, voxelScale, voxelScale);
+
 let mappings = {
     chunks: {},
     blocks: {},
@@ -29,6 +30,8 @@ export class Chunk {
 
         if (index === -1) return false;
 
+		if (this.loaded) this.blocks[index].removeMesh();
+		
         this.blocks.splice(index, 1);
 
         return true;
@@ -43,6 +46,8 @@ export class Chunk {
         for (let block of this.blocks) {
             block.addMesh();
         }
+
+        this.loaded = true;
     }
     unload() {
         if (!this.loaded) return;
@@ -50,29 +55,25 @@ export class Chunk {
         for (let block of this.blocks) {
             block.removeMesh();
         }
+
+        this.loaded = false;
     }
     isLoaded() {
         return this.loaded;
     }
 }
 
-export function generateChunk(chunkX, chunkZ, noise) {
-    let chunk = new Chunk(chunkX, chunkZ);
-
-    for (let x = chunkX * chunkSize; x < chunkX * chunkSize + chunkSize; x++) {
-        for (let z = chunkZ * chunkSize; z < chunkZ * chunkSize + chunkSize; z++) {
-            let y = Math.round(noise.noise(x / 100, z / 100) * 10);
-    
-            let b = new Block(x, y, z, getBlockType("grass"));
-            chunk.addBlock(b);
-        }
-    }
-
-    return chunk;
-}
-
 export function getChunk(x, z) {
     return mappings.chunks[`${x},${z}`] ?? null;
+}
+export function getAllChunks() {
+	return Object.values(mappings.chunks);
+}
+export function getLoadedChunks() {
+	return getAllChunks().filter(chunk => chunk.isLoaded());
+}
+export function getUnloadedChunks() {
+	return getAllChunks().filter(chunk => !chunk.isLoaded());
 }
 
 export class Block {
@@ -108,12 +109,12 @@ export class BlockType {
     }
 
     addBlockMesh(block) {
-        let matrix = new THREE.Matrix4().setPosition(block.position.clone().multiplyScalar(voxelSize));
+        let matrix = new THREE.Matrix4().setPosition(block.position.clone().multiplyScalar(voxelScale));
         this.mesh.setMatrixAt(this.mesh.getNextIndex(), matrix);
     }
 
     removeBlockMesh(block) {
-        let blockPosition = block.position.clone().multiplyScalar(voxelSize);
+        let blockPosition = block.position.clone().multiplyScalar(voxelScale);
 
         for (let i = 0; i < this.mesh.count; i++) {
             let matrix = new THREE.Matrix4();

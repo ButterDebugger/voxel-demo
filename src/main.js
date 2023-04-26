@@ -27,29 +27,9 @@ scene.fog = new THREE.Fog(scene.background, 750, 1000);
  * Object
  */
 
-import { createTextureFromUrl, BlockType, Block, getBlockType, generateChunk } from "./voxels.js";
+import { loadNearbyChunks, init as initTerrain } from "./terrain.js";
 
-new BlockType("grass", [
-    new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./assets/grass_side.png') }), // right side
-    new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./assets/grass_side.png') }), // left side
-    new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./assets/grass.png') }), // top side
-    new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./assets/dirt.png') }), // bottom side
-    new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./assets/grass_side.png') }), // front side
-    new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./assets/grass_side.png') }), // back side
-], scene);
-
-import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise.js";
-
-const noise = new SimplexNoise();
-
-let worldSize = 10;
-
-for (let x = -worldSize; x < worldSize; x++) {
-    for (let z = -worldSize; z < worldSize; z++) {
-        let c = generateChunk(x, z, noise);
-        c.load();
-    }
-}
+initTerrain(scene);
 
 /**
  * Sizes
@@ -113,43 +93,6 @@ canvas.addEventListener("click", () => {
     controls.lock();
 });
 
-
-
-
-
-
-
-// import { DynamicInstancedMesh } from "./utils.js";
-
-// const geometry = new THREE.BoxGeometry(1, 1, 1);
-// const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-// let dynamicMesh = new DynamicInstancedMesh(geometry, [
-//     new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./grass_side.png') }), // right side
-//     new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./grass_side.png') }), // left side
-//     new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./grass.png') }), // top side
-//     new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./dirt.png') }), // bottom side
-//     new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./grass_side.png') }), // front side
-//     new THREE.MeshBasicMaterial({ map: createTextureFromUrl('./grass_side.png') }), // back side
-// ], 10, scene);
-
-// let iwer = 0;
-
-// setInterval(() => {
-//     dynamicMesh.setMatrixAt(iwer, new THREE.Matrix4().setPosition(new THREE.Vector3(iwer % 100, 0, Math.floor(iwer / 100))));
-//     console.log(iwer % 100, Math.floor(iwer / 100))
-
-//     iwer += 1;
-// }, 1);
-
-
-
-
-
-
-
-
-
-
 /**
  * Animate
  */
@@ -168,23 +111,35 @@ const animate = () => {
 }
 
 function updateControls() {
+    let moved = false;
+
     if (keys?.KeyW) {
         controls.moveForward(1);
+        moved = true;
     }
     if (keys?.KeyA) {
         controls.moveRight(-1);
+        moved = true;
     }
     if (keys?.KeyS) {
         controls.moveForward(-1);
+        moved = true;
     }
     if (keys?.KeyD) {
         controls.moveRight(1);
+        moved = true;
     }
     if (keys?.Space) {
         camera.position.y += 1;
+        moved = true;
     }
     if (keys?.Shift) {
         camera.position.y -= 1;
+        moved = true;
+    }
+
+    if (moved) {
+        loadNearbyChunks(camera.position, 4);
     }
 }
 
