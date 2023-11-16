@@ -33,12 +33,8 @@ export class Chunk {
                 for (let block of yAxis) {
                     if (!(block instanceof Block)) continue;
 
-                    setTimeout(() => { // TODO: this fixes the lag but it's a very weird solution
-                        queueMicrotask(() => {
-                            block.cullFaces();
-                            block.render();
-                        });
-                    }, Math.random());
+                    block.cullFaces();
+                    block.render();
                 }
             }
         }
@@ -52,11 +48,7 @@ export class Chunk {
                 for (let block of yAxis) {
                     if (!(block instanceof Block)) continue;
                     
-                    setTimeout(() => { // TODO: this fixes the lag but it's a very weird solution
-                        queueMicrotask(() => {
-                            block.unrender();
-                        });
-                    }, Math.random());
+                    block.unrender();
                 }
             }
         }

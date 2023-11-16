@@ -108,20 +108,14 @@ export class BlockPlane {
 
 	removeBlockMesh(block, face) {
 		let faceMatrix = this.getBlockMeshMatrix(block, face);
-		let facePosition = new THREE.Vector3();
-		let faceQuaternion = new THREE.Quaternion();
-		let faceScale = new THREE.Vector3();
-
-		faceMatrix.decompose(facePosition, faceQuaternion, faceScale);
+		let facePosition = new THREE.Vector3().setFromMatrixPosition(faceMatrix);
 
 		for (let i = 0; i < this.mesh.count; i++) {
 			let matrix = new THREE.Matrix4();
-			let position = new THREE.Vector3();
-			let quaternion = new THREE.Quaternion();
-			let scale = new THREE.Vector3();
-
 			this.mesh.getMatrixAt(i, matrix);
-			matrix.decompose(position, quaternion, scale);
+
+			let position = new THREE.Vector3();
+			position.setFromMatrixPosition(matrix);
 
 			if (facePosition.equals(position)) {
 				this.mesh.removeInstanceAt(i);
