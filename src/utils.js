@@ -10,9 +10,10 @@ export class DynamicInstancedMesh {
         this.mesh.count = 0;
         this.maxCount = count;
 
-        this.setBlankMatrix = (i) => { // Set a blank matrix for the given index (offers no performance gain, just makes them invisible)
+        this.setBlankMatrix = (i) => { // TODO: Set a blank matrix for the given index (offers no performance gain, just makes them invisible)
             this.mesh.setMatrixAt(i, new THREE.Matrix4().scale(new THREE.Vector3()));
             this.mesh.instanceMatrix.needsUpdate = true;
+            this.mesh.computeBoundingSphere();
         }
         this.scene.add(this.mesh);
 
@@ -28,6 +29,7 @@ export class DynamicInstancedMesh {
 
         let originalCount = this.maxCount;
         let newMesh = new THREE.InstancedMesh(this.mesh.geometry, this.mesh.material, this.maxCount *= 2);
+        newMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         let countIncrease = this.maxCount - originalCount;
         
         // Copy the matrices from the old mesh to the new mesh
@@ -49,6 +51,7 @@ export class DynamicInstancedMesh {
         this.mesh = newMesh;
         this.mesh.count = this.count;
         this.mesh.instanceMatrix.needsUpdate = true;
+        this.mesh.computeBoundingSphere();
     }
 
     getNextIndex() {
@@ -97,6 +100,7 @@ export class DynamicInstancedMesh {
 
         this.mesh.count = this.count;
         this.mesh.instanceMatrix.needsUpdate = true;
+        this.mesh.computeBoundingSphere();
 
         if (this.count >= this.maxCount) {
             this.rebuild();

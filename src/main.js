@@ -17,6 +17,23 @@ document.body.appendChild(stats.dom);
 
 // Canvas
 const canvas = document.querySelector("canvas");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const offscreen = canvas.transferControlToOffscreen();
+
+// TODO: offscreen canvas worker: https://github.com/mrdoob/three.js/tree/master/examples/jsm/offscreen
+/*
+let worker = new Worker("./worker.js", {
+    type: "module"
+});
+
+worker.postMessage({
+    drawingSurface: offscreen,
+    width: window.innerWidth,
+    height: window.innerHeight,
+    pixelRatio: window.devicePixelRatio,
+}, [ offscreen ]);
+*/
 
 // Scene
 const scene = new THREE.Scene();
@@ -24,32 +41,49 @@ scene.background = new THREE.Color(0x87ceeb);
 scene.fog = new THREE.Fog(scene.background, 750, 1000);
 
 /**
- * Object
+ * Objects
  */
 
-import { loadNearbyChunks, init as initTerrain } from "./terrain.js";
+import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise.js";
+import { BlockType, BlockFace, blockSize, declareBlocks, Block } from "./blocks.js";
+import { Chunk, createOrGetChunk, chunkSize, loadAllChunks, unloadAllChunks } from "./chunks.js";
 
-initTerrain(scene);
+declareBlocks(scene);
 
-/**
- * Sizes
- */
-const sizes = {
-    width: window.innerWidth,
-    height: window.innerHeight
+const noise = new SimplexNoise();
+
+let length = 16;
+
+for (let x = -length; x < length; x++) {
+    for (let z = -length; z < length; z++) {
+        let y = Math.round(noise.noise(x / 20, z / 20) * 3);
+
+        new Block(BlockType.grass, x, y, z, scene);
+    }
 }
 
-window.addEventListener('resize', () => {
-    // Update sizes
-    sizes.width = window.innerWidth;
-    sizes.height = window.innerHeight;
+let unSlashLoad = 0;
 
+setInterval(() => {
+    unSlashLoad = (unSlashLoad + 1) % 2;
+
+    if (unSlashLoad === 1) {
+        loadAllChunks();
+    } else {
+        unloadAllChunks();
+    }
+}, 5000);
+
+/**
+ * Screen resizing
+ */
+
+window.addEventListener('resize', () => {
     // Update camera
-    camera.aspect = sizes.width / sizes.height;
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
     // Update renderer
-    renderer.setSize(sizes.width, sizes.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
@@ -59,7 +93,7 @@ window.addEventListener('resize', () => {
 // Base camera
 const camera = new THREE.PerspectiveCamera(
     75,
-    sizes.width / sizes.height,
+    canvas.width / canvas.height,
     0.01,
     1000
 );
@@ -73,11 +107,10 @@ scene.add(axesHelper);
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
+    canvas: offscreen,
     antialias: true,
     logarithmicDepthBuffer: true
 });
-renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // Controls
@@ -139,7 +172,7 @@ function updateControls() {
     }
 
     if (moved) {
-        loadNearbyChunks(camera.position, 4);
+        // loadNearbyChunks(camera.position, 4);
     }
 }
 

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { DynamicInstancedMesh } from "./utils.js";
+import { DynamicInstancedMesh } from "../utils.js";
 
 export const voxelScale = 5;
 export const chunkSize = 16;
