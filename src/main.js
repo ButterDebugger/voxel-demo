@@ -67,13 +67,7 @@ getChunk(0, 0, 0)?.load?.();
 
 // let unSlashLoad = 0;
 
-setInterval(() => {
-    // try {
-    //     loadNearbyChunks(camera.position, 2);
-    // } catch (error) {
-    //     alert(error.message);
-    // }
-
+// setInterval(() => {
 //     unSlashLoad = (unSlashLoad + 1) % 2;
 
 //     if (unSlashLoad === 1) {
@@ -81,7 +75,7 @@ setInterval(() => {
 //     } else {
 //         unloadAllChunks();
 //     }
-}, 5000);
+// }, 5000);
 
 /**
  * Screen resizing
@@ -181,11 +175,7 @@ function updateControls() {
     }
 
     if (moved) {
-        try {
-            loadNearbyChunks(camera.position, 4);
-        } catch (error) {
-            alert(error.message)
-        }
+        loadNearbyChunks(camera.position, 4);
     }
 }
 
