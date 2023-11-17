@@ -46,32 +46,41 @@ scene.fog = new THREE.Fog(scene.background, 750, 1000);
 
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise.js";
 import { BlockType, BlockFace, blockSize, declareBlocks, Block } from "./blocks.js";
-import { Chunk, createOrGetChunk, chunkSize, loadAllChunks, unloadAllChunks } from "./chunks.js";
+import { Chunk, createOrGetChunk, chunkSize, loadAllChunks, unloadAllChunks, loadNearbyChunks, getChunk } from "./chunks.js";
 
 declareBlocks(scene);
 
 const noise = new SimplexNoise();
+const noise2 = new SimplexNoise();
 
-let length = 16;
+let length = 100;
 
 for (let x = -length; x < length; x++) {
     for (let z = -length; z < length; z++) {
-        let y = Math.round(noise.noise(x / 20, z / 20) * 3);
+        let y = Math.round((noise.noise(x / 20, z / 20) * 8 + noise2.noise(x / 40, z / 40) * 8) / 2);
 
         new Block(BlockType.grass, x, y, z, scene);
     }
 }
 
-let unSlashLoad = 0;
+getChunk(0, 0, 0)?.load?.();
+
+// let unSlashLoad = 0;
 
 setInterval(() => {
-    unSlashLoad = (unSlashLoad + 1) % 2;
+    // try {
+    //     loadNearbyChunks(camera.position, 2);
+    // } catch (error) {
+    //     alert(error.message);
+    // }
 
-    if (unSlashLoad === 1) {
-        loadAllChunks();
-    } else {
-        unloadAllChunks();
-    }
+//     unSlashLoad = (unSlashLoad + 1) % 2;
+
+//     if (unSlashLoad === 1) {
+//         loadAllChunks();
+//     } else {
+//         unloadAllChunks();
+//     }
 }, 5000);
 
 /**
@@ -172,7 +181,11 @@ function updateControls() {
     }
 
     if (moved) {
-        // loadNearbyChunks(camera.position, 4);
+        try {
+            loadNearbyChunks(camera.position, 4);
+        } catch (error) {
+            alert(error.message)
+        }
     }
 }
 

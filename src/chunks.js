@@ -1,6 +1,7 @@
-import { Block } from "./blocks.js";
+import * as THREE from "three";
+import { Block, blockSize } from "./blocks.js";
 
-export const chunkSize = 16;
+export const chunkSize = 16; // FIXME: blocks render weirdly when this isn't set to 16
 const chunks = {};
 
 // TODO: clamp blocks into chunks
@@ -92,6 +93,11 @@ export function createOrGetChunk(x, y, z, scene) {
     return chunk;
 }
 
+export function getChunk(x, y, z) {
+    let key = `${x}:${y}:${z}`;
+    return chunks[key] ?? null;
+}
+
 export function isChunkAtPos(chunkX, chunkY, chunkZ) {
     let key = `${chunkX}:${chunkY}:${chunkZ}`;
     return !!chunks[key];
@@ -125,5 +131,36 @@ export function unloadAllChunks() {
         let chunk = chunks[chunkKey];
         
         chunk.unload();
+    }
+}
+
+export function loadNearbyChunks(position, renderDistance) {
+    let relativePos = position.clone().divideScalar(chunkSize * blockSize).round();
+    let loadedChunks = Object.values(chunks).filter(chunk => chunk.loaded);
+    let nearbyChunks = [];
+
+    for (let x = relativePos.x - renderDistance; x < relativePos.x + renderDistance; x++) {
+        for (let z = relativePos.z - renderDistance; z < relativePos.z + renderDistance; z++) {
+            let distance = new THREE.Vector2(relativePos.x, relativePos.z).distanceTo(new THREE.Vector2(x, z));
+            if (distance > renderDistance) continue;
+
+            for (let y = relativePos.y - renderDistance; y < relativePos.y + renderDistance; y++) {
+                if (!isChunkAtPos(x, y, z)) continue;
+    
+                nearbyChunks.push(getChunk(x, y, z));
+            }
+        }
+    }
+
+    for (let loadedChunk of loadedChunks) {
+        if (nearbyChunks.includes(loadedChunk)) continue;
+
+        loadedChunk.unload();
+    }
+
+    for (let nearbyChunk of nearbyChunks) {
+        if (loadedChunks.includes(nearbyChunk)) continue;
+
+        nearbyChunk.load();
     }
 }
