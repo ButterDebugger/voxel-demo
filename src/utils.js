@@ -1,9 +1,11 @@
 import * as THREE from "three";
 
 export class DynamicInstancedMesh {
-    constructor(geometry, material, count, scene) {
+    constructor(geometry, material, count, scene, onBuild = () => {}) {
         this.mesh = new THREE.InstancedMesh(geometry, material, count);
         this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        this.onBuild = onBuild;
+        this.onBuild(this.mesh);
         this.scene = scene;
         this.availableIndexes = new Set();
         this.count = 0;
@@ -29,6 +31,7 @@ export class DynamicInstancedMesh {
         let originalCount = this.maxCount;
         let newMesh = new THREE.InstancedMesh(this.mesh.geometry, this.mesh.material, this.maxCount *= 2);
         newMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        this.onBuild(newMesh);
         let countIncrease = this.maxCount - originalCount;
         
         // Copy the matrices from the old mesh to the new mesh
