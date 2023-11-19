@@ -122,3 +122,10 @@ export class DynamicInstancedMesh {
         // TODO: add automatic downsizing of the instanced mesh
     }
 }
+
+export function createTextureFromUrl(url) {
+    let loader = new THREE.TextureLoader();
+    let texture = loader.load(url);
+    texture.magFilter = THREE.NearestFilter; // Remove antialiasing
+    return texture;
+}

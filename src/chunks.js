@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Block, blockSize } from "./blocks.js";
 
-export const chunkSize = 16; // FIXME: blocks render weirdly when this isn't set to 16
+export const chunkSize = 4;
 const chunks = {};
 
 // TODO: clamp blocks into chunks
@@ -135,7 +135,7 @@ export function unloadAllChunks() {
 }
 
 export function loadNearbyChunks(position, renderDistance) {
-    let relativePos = position.clone().divideScalar(chunkSize * blockSize).round();
+    let relativePos = position.clone().divideScalar(chunkSize * blockSize).floor();
     let loadedChunks = Object.values(chunks).filter(chunk => chunk.loaded);
     let nearbyChunks = [];
 

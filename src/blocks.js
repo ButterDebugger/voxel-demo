@@ -1,7 +1,6 @@
 import * as THREE from "three";
-import { chunkSize, createTextureFromUrl } from "./old/voxels.js";
-import { createOrGetChunk, getBlock } from "./chunks.js";
-import { DynamicInstancedMesh } from "./utils.js";
+import { chunkSize, createOrGetChunk, getBlock } from "./chunks.js";
+import { DynamicInstancedMesh, createTextureFromUrl } from "./utils.js";
 
 export const blockSize = 10;
 
