@@ -39,11 +39,13 @@ export class BlockPlane {
 		this.texture = texture;
 
 		let geometry = new THREE.PlaneGeometry(blockSize, blockSize);
-		let material = new THREE.MeshBasicMaterial({
+		let material = new THREE.MeshStandardMaterial({
 			map: this.texture,
 			side: THREE.DoubleSide
 		});
 		this.mesh = new DynamicInstancedMesh(geometry, material, 256, scene);
+		this.mesh.castShadow = true;
+  		this.mesh.receiveShadow = true;
 		this.count = 0;
 		this.scene = scene;
 	}

@@ -107,6 +107,21 @@ const axesHelper = new THREE.AxesHelper(30);
 scene.add(axesHelper);
 
 /**
+ * Light
+ */
+
+const sunLight = new THREE.AmbientLight(0x7f7f7f);
+scene.add(sunLight);
+
+var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(-1, 0.75, 1);
+dirLight.position.multiplyScalar(50);
+scene.add(dirLight);
+
+const pointLightHelper = new THREE.DirectionalLightHelper(dirLight, 5);
+scene.add(pointLightHelper);
+
+/**
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
@@ -114,6 +129,7 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true,
     logarithmicDepthBuffer: true
 });
+renderer.shadowMap.enabled = true;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // Controls
