@@ -17,6 +17,23 @@ document.body.appendChild(stats.dom);
 
 // Canvas
 const canvas = document.querySelector("canvas");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const offscreen = canvas.transferControlToOffscreen();
+
+// TODO: offscreen canvas worker: https://github.com/mrdoob/three.js/tree/master/examples/jsm/offscreen
+/*
+let worker = new Worker("./worker.js", {
+    type: "module"
+});
+
+worker.postMessage({
+    drawingSurface: offscreen,
+    width: window.innerWidth,
+    height: window.innerHeight,
+    pixelRatio: window.devicePixelRatio,
+}, [ offscreen ]);
+*/
 
 // Scene
 const scene = new THREE.Scene();
@@ -24,32 +41,52 @@ scene.background = new THREE.Color(0x87ceeb);
 scene.fog = new THREE.Fog(scene.background, 750, 1000);
 
 /**
- * Object
+ * Objects
  */
 
-import { loadNearbyChunks, init as initTerrain } from "./terrain.js";
+import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise.js";
+import { BlockType, BlockFace, blockSize, declareBlocks, Block } from "./blocks.js";
+import { Chunk, createOrGetChunk, chunkSize, loadAllChunks, unloadAllChunks, loadNearbyChunks, getChunk } from "./chunks.js";
 
-initTerrain(scene);
+declareBlocks(scene);
 
-/**
- * Sizes
- */
-const sizes = {
-    width: window.innerWidth,
-    height: window.innerHeight
+const noise = new SimplexNoise();
+const noise2 = new SimplexNoise();
+
+let length = 100;
+
+for (let x = -length; x < length; x++) {
+    for (let z = -length; z < length; z++) {
+        let y = Math.round((noise.noise(x / 20, z / 20) * 8 + noise2.noise(x / 40, z / 40) * 8) / 2);
+
+        new Block(BlockType.grass, x, y, z, scene);
+    }
 }
 
-window.addEventListener('resize', () => {
-    // Update sizes
-    sizes.width = window.innerWidth;
-    sizes.height = window.innerHeight;
+getChunk(0, 0, 0)?.load?.();
 
+// let unSlashLoad = 0;
+
+// setInterval(() => {
+//     unSlashLoad = (unSlashLoad + 1) % 2;
+
+//     if (unSlashLoad === 1) {
+//         loadAllChunks();
+//     } else {
+//         unloadAllChunks();
+//     }
+// }, 5000);
+
+/**
+ * Screen resizing
+ */
+
+window.addEventListener('resize', () => {
     // Update camera
-    camera.aspect = sizes.width / sizes.height;
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
     // Update renderer
-    renderer.setSize(sizes.width, sizes.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
@@ -59,7 +96,7 @@ window.addEventListener('resize', () => {
 // Base camera
 const camera = new THREE.PerspectiveCamera(
     75,
-    sizes.width / sizes.height,
+    canvas.width / canvas.height,
     0.01,
     1000
 );
@@ -70,14 +107,29 @@ const axesHelper = new THREE.AxesHelper(30);
 scene.add(axesHelper);
 
 /**
+ * Light
+ */
+
+const sunLight = new THREE.AmbientLight(0x7f7f7f);
+scene.add(sunLight);
+
+var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(-1, 0.75, 1);
+dirLight.position.multiplyScalar(50);
+scene.add(dirLight);
+
+const pointLightHelper = new THREE.DirectionalLightHelper(dirLight, 5);
+scene.add(pointLightHelper);
+
+/**
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
+    canvas: offscreen,
     antialias: true,
     logarithmicDepthBuffer: true
 });
-renderer.setSize(sizes.width, sizes.height);
+renderer.shadowMap.enabled = true;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // Controls

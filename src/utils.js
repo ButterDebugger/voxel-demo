@@ -10,7 +10,7 @@ export class DynamicInstancedMesh {
         this.mesh.count = 0;
         this.maxCount = count;
 
-        this.setBlankMatrix = (i) => { // Set a blank matrix for the given index (offers no performance gain, just makes them invisible)
+        this.setBlankMatrix = (i) => { // TODO: Set a blank matrix for the given index (offers no performance gain, just makes them invisible)
             this.mesh.setMatrixAt(i, new THREE.Matrix4().scale(new THREE.Vector3()));
             this.mesh.instanceMatrix.needsUpdate = true;
         }
@@ -28,6 +28,7 @@ export class DynamicInstancedMesh {
 
         let originalCount = this.maxCount;
         let newMesh = new THREE.InstancedMesh(this.mesh.geometry, this.mesh.material, this.maxCount *= 2);
+        newMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         let countIncrease = this.maxCount - originalCount;
         
         // Copy the matrices from the old mesh to the new mesh
@@ -115,4 +116,11 @@ export class DynamicInstancedMesh {
 
         // TODO: add automatic downsizing of the instanced mesh
     }
+}
+
+export function createTextureFromUrl(url) {
+    let loader = new THREE.TextureLoader();
+    let texture = loader.load(url);
+    texture.magFilter = THREE.NearestFilter; // Remove antialiasing
+    return texture;
 }
