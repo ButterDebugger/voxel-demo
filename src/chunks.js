@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Block, blockSize } from "./blocks.js";
+import { Block, blockSize, recomputeBoundingSpheres } from "./blocks.js";
 
 export const chunkSize = 4;
 const chunks = {};
@@ -39,6 +39,8 @@ export class Chunk {
                 }
             }
         }
+
+        recomputeBoundingSpheres();
     }
     unload() {
         if (!this.loaded) return;
@@ -53,6 +55,8 @@ export class Chunk {
                 }
             }
         }
+
+        recomputeBoundingSpheres();
     }
 
     addBlock(block) {
@@ -65,6 +69,8 @@ export class Chunk {
         if (this.loaded) {
             block.cullFaces();
             block.render();
+
+            recomputeBoundingSpheres();
         }
     }
 

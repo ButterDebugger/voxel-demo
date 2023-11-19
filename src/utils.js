@@ -1,7 +1,5 @@
 import * as THREE from "three";
 
-// TODO: reincorporate computeBoundingSphere without it affecting performance
-
 export class DynamicInstancedMesh {
     constructor(geometry, material, count, scene) {
         this.mesh = new THREE.InstancedMesh(geometry, material, count);
@@ -15,7 +13,6 @@ export class DynamicInstancedMesh {
         this.setBlankMatrix = (i) => { // TODO: Set a blank matrix for the given index (offers no performance gain, just makes them invisible)
             this.mesh.setMatrixAt(i, new THREE.Matrix4().scale(new THREE.Vector3()));
             this.mesh.instanceMatrix.needsUpdate = true;
-            // this.mesh.computeBoundingSphere();
         }
         this.scene.add(this.mesh);
 
@@ -53,7 +50,6 @@ export class DynamicInstancedMesh {
         this.mesh = newMesh;
         this.mesh.count = this.count;
         this.mesh.instanceMatrix.needsUpdate = true;
-        // this.mesh.computeBoundingSphere();
     }
 
     getNextIndex() {
@@ -102,7 +98,6 @@ export class DynamicInstancedMesh {
 
         this.mesh.count = this.count;
         this.mesh.instanceMatrix.needsUpdate = true;
-        // this.mesh.computeBoundingSphere();
 
         if (this.count >= this.maxCount) {
             this.rebuild();

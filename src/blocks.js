@@ -28,6 +28,12 @@ export function declareBlocks(scene) {
 	);
 }
 
+export function recomputeBoundingSpheres() {
+	for (let plane of Object.values(BlockPlane)) {
+		plane.mesh.computeBoundingSphere();
+	}
+}
+
 export class BlockPlane {
 	constructor(texture, scene) {
 		this.texture = texture;
@@ -218,7 +224,7 @@ export class Block {
 	}
 
 	render() {
-		if (this.isRendered) this.unrender();
+		if (this.isRendered) this.unrender(); // Rerender the block mesh
 
 		for (let face of this.faces) {
 			let plane = this.type.getPlane(face);
