@@ -44,8 +44,6 @@ export class BlockPlane {
 			side: THREE.DoubleSide
 		});
 		this.mesh = new DynamicInstancedMesh(geometry, material, 256, scene);
-		this.mesh.castShadow = true;
-  		this.mesh.receiveShadow = true;
 		this.count = 0;
 		this.scene = scene;
 	}
